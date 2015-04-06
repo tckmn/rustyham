@@ -1,0 +1,5 @@
+[package]
+
+name = "rustyham"
+version = "0.0.1"
+authors = ["KeyboardFire <andy@keyboardfire.com>"]
