@@ -1,10 +1,7 @@
-#![feature(collections)]
-
 use std::io;
 use std::io::prelude::*;
 use std::iter::repeat;
 use std::str::FromStr;
-use std::collections::BitVec;
 
 enum Hamming { Encode, Decode }
 
@@ -61,7 +58,7 @@ fn hamming(action: Hamming) -> String {
             let len = 2us.pow(lenpow) - 1;
 
             // the thing we're storing the hamming code in
-            let mut bv = BitVec::from_elem(len, false);
+            let mut code: Vec<bool> = repeat(false).take(len).collect::<>();
 
             // convert ASCII string to binary
             // IMPORTANT NOTE: the following line takes ownership of the
@@ -75,7 +72,7 @@ fn hamming(action: Hamming) -> String {
             let mut bytes_iter = bytes_str.chars();
             for i in 1..len {
                 if (i & (i - 1)) != 0 {  // if i is not a power of 2
-                    bv.set(i-1, bytes_iter.next().unwrap_or('0') == '1');
+                    code[i-1] = bytes_iter.next().unwrap_or('0') == '1';
                 }
             }
 
@@ -84,30 +81,36 @@ fn hamming(action: Hamming) -> String {
                 let bi = 2us.pow(i) - 1;
                 let (mut parity, mut ignore, mut counter) = (false, false, 0);
                 for j in bi..len {
-                    if !ignore && bv.get(j).unwrap() { parity = !parity; }
+                    if !ignore && code[j] { parity = !parity; }
                     counter += 1;
                     if counter >= 2u32.pow(i) {
                         ignore = !ignore;
                         counter = 0;
                     }
                 }
-                bv.set(bi, parity);
+                code[bi] = parity;
             }
 
-            format!("{:?}", bv)
+            code.into_iter().map(|x| if x {"1"} else {"0"}).collect::<Vec<_>>().concat()
         },
         Hamming::Decode => {
-            // TODO make this support error correction (which is basically the
-            // whole point of a hamming code...)
-
             // prompt for binary input
-            let mut code = String::new();
+            let mut code_str = String::new();
             print!("Enter Hamming code to decode: ");
             io::stdout().flush().unwrap();
-            io::stdin().read_line(&mut code).unwrap();
+            io::stdin().read_line(&mut code_str).unwrap();
+
+            // verify parity bits, fix 1-bit-flipped errors if any
+            // TODO avoid code repetition in Hamming::Encode =>
+            let len = code_str.len() - 1;
+            let lenpow = ((len + 1) as f32).sqrt().round() as u32;
+            let chars = code_str.chars().map(|x| x == '1').collect::<Vec<bool>>();
+            for i in 0..lenpow {
+                println!("{:?}", calc_parity(chars, i));
+            }
 
             // collect all bits at non-powers-of-2
-            let data = &code.trim().chars().enumerate()
+            let data = &code_str.trim().chars().enumerate()
                 .filter(|x| ((x.0 + 1) & x.0) != 0).map(|x| x.1)
                 .collect::<Vec<char>>()[..];
             let chars = data.chunks(7)
@@ -117,4 +120,18 @@ fn hamming(action: Hamming) -> String {
             String::from_utf8(chars).unwrap()
         }
     }
+}
+
+fn calc_parity(code: Vec<bool>, i: u32) -> bool {
+    let bi = 2us.pow(i) - 1;
+    let (mut parity, mut ignore, mut counter) = (false, false, 0);
+    for j in bi..code.len() {
+        if !ignore && code[j] { parity = !parity }
+        counter += 1;
+        if counter >= 2u32.pow(i) {
+            ignore = !ignore;
+            counter = 0;
+        }
+    }
+    parity
 }
