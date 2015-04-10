@@ -18,9 +18,10 @@ fn main() {
     loop {
         let mut linebuf = String::new();
         println!("(1) Encode ASCII");
-        println!("(2) Encode binary");
+        println!("*(2) Encode binary");
         println!("(3) Decode to ASCII");
-        println!("(4) Decode to binary");
+        println!("*(4) Decode to binary");
+        println!("Note: options marked as * are not supported yet.");
         print!("Enter your choice: ");
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut linebuf).unwrap();
