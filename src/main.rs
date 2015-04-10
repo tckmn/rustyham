@@ -28,8 +28,8 @@ fn main() {
             Some(n) => {
                 let mut good = true;
                 println!("{}", match n {
-                    1 => hamming(Hamming::Encode),
-                    3 => hamming(Hamming::Decode),
+                    1 => hamming(Hamming::Encode, prompt("Enter string to encode: ")),
+                    3 => hamming(Hamming::Decode, prompt("Enter Hamming code to decode: ")),
                     2 | 4 => "Sorry, not implemented yet.".to_string(),
                     _ => { good = false; "Invalid input.".to_string() }
                 });
@@ -42,14 +42,11 @@ fn main() {
     }
 }
 
-fn hamming(action: Hamming) -> String {
+fn hamming(action: Hamming, s: String) -> String {
     match action {
         Hamming::Encode => {
-            // prompt for ASCII input
-            let message = prompt("Enter string to encode: ");
-
             // compute block and message length
-            let mlen = message.len() as u32 * 7;
+            let mlen = s.len() as u32 * 7;
             let lenpow = (2..).find(|&r| 2u32.pow(r) - r - 1 >= mlen).unwrap();
             let len = 2us.pow(lenpow) - 1;
 
@@ -58,9 +55,9 @@ fn hamming(action: Hamming) -> String {
 
             // convert ASCII string to binary
             // IMPORTANT NOTE: the following line takes ownership of the
-            // `message' variable. We no longer have access to the original
+            // `s' variable. We no longer have access to the original
             // string from this point onwards.
-            let bytes = message.into_bytes();
+            let bytes = s.into_bytes();
             let bytes_str = bytes.iter().map(|&c| format!("{:0>1$b}", c, 7))
                 .collect::<Vec<String>>().concat();
 
@@ -80,13 +77,10 @@ fn hamming(action: Hamming) -> String {
             code.into_iter().map(|x| if x {"1"} else {"0"}).collect::<Vec<_>>().concat()
         },
         Hamming::Decode => {
-            // prompt for binary input
-            let code_str = prompt("Enter Hamming code to decode: ");
-
             // verify parity bits, fix 1-bit-flipped errors if any
-            let len = code_str.len();
+            let len = s.len();
             let lenpow = ((len + 1) as f32).sqrt().round() as u32;
-            let mut chars = code_str.chars().map(|x| x == '1').collect::<Vec<bool>>();
+            let mut chars = s.chars().map(|x| x == '1').collect::<Vec<bool>>();
             let mut flipped_bit = -1i32;
             while (0..lenpow).any(|i| calc_parity(&chars, i)) {
                 if flipped_bit != -1 {
