@@ -3,7 +3,6 @@ use std::io::prelude::*;
 use std::iter::repeat;
 use std::str::FromStr;
 use std::num::Int;
-use std::num::ToPrimitive;
 use std::collections::BitVec;
 
 fn main() {
@@ -50,7 +49,7 @@ fn hamming() -> String {
 
     // compute block and message length
     message = message.trim().to_string();
-    let mlen = message.len().to_u32().unwrap() * 7;
+    let mlen = message.len() as u32 * 7;
     let lenpow = (2..).find(|&r| 2.pow(r) - r - 1 >= mlen).unwrap();
     let len = 2.pow(lenpow) - 1;
 
