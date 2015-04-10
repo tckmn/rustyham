@@ -91,16 +91,21 @@ fn hamming(action: Hamming) -> String {
             io::stdin().read_line(&mut code_str).unwrap();
 
             // verify parity bits, fix 1-bit-flipped errors if any
-            let len = code_str.len() - 1;
+            let len = code_str.len() - 1;  // -1 because newline at end
             let lenpow = ((len + 1) as f32).sqrt().round() as u32;
-            let chars = code_str.chars().map(|x| x == '1').collect::<Vec<bool>>();
-            if (0..lenpow).any(|i| calc_parity(&chars, i)) {
-                println!("There is an error!");
+            let mut chars = code_str.trim().chars().map(|x| x == '1').collect::<Vec<bool>>();
+            let mut flipped_bit = -1i32;
+            while (0..lenpow).any(|i| calc_parity(&chars, i)) {
+                if flipped_bit != -1 {
+                    chars[flipped_bit as usize] = !chars[flipped_bit as usize];
+                }
+                flipped_bit += 1;
+                chars[flipped_bit as usize] = !chars[flipped_bit as usize];
             }
 
             // collect all bits at non-powers-of-2
-            let data = &code_str.trim().chars().enumerate()
-                .filter(|x| ((x.0 + 1) & x.0) != 0).map(|x| x.1)
+            let data = &chars.iter().enumerate()
+                .filter(|x| ((x.0 + 1) & x.0) != 0).map(|x| if *x.1 {'1'} else {'0'})
                 .collect::<Vec<char>>()[..];
             let chars = data.chunks(7)
                 .map(|x| u8::from_str_radix(&x.iter().cloned().collect::<String>()[..], 2).unwrap())
