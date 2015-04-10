@@ -1,8 +1,9 @@
+#![feature(collections)]
+
 use std::io;
 use std::io::prelude::*;
 use std::iter::repeat;
 use std::str::FromStr;
-use std::num::Int;
 use std::collections::BitVec;
 
 fn main() {
@@ -50,8 +51,8 @@ fn hamming() -> String {
     // compute block and message length
     message = message.trim().to_string();
     let mlen = message.len() as u32 * 7;
-    let lenpow = (2..).find(|&r| 2.pow(r) - r - 1 >= mlen).unwrap();
-    let len = 2.pow(lenpow) - 1;
+    let lenpow = (2..).find(|&r| 2u32.pow(r) - r - 1 >= mlen).unwrap();
+    let len = 2us.pow(lenpow) - 1;
 
     // the thing we're storing the hamming code in
     let mut bv = BitVec::from_elem(len, false);
@@ -76,7 +77,7 @@ fn hamming() -> String {
 
     // set parity bits
     for i in 0..lenpow {
-        let bi = 2.pow(i)-1;
+        let bi = 2us.pow(i)-1;
         let mut parity = false;
         let mut ignore = false;
         let mut counter = 0;
@@ -87,7 +88,7 @@ fn hamming() -> String {
                 }
             }
             counter += 1;
-            if counter >= 2.pow(i) {
+            if counter >= 2u32.pow(i) {
                 ignore = !ignore;
                 counter = 0;
             }
