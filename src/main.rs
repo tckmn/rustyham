@@ -96,7 +96,24 @@ fn hamming(action: Hamming) -> String {
             format!("{:?}", bv)
         },
         Hamming::Decode => {
-            "foo".to_string()
+            // TODO make this support error correction (which is basically the
+            // whole point of a hamming code...)
+
+            // prompt for binary input
+            let mut code = String::new();
+            print!("Enter Hamming code to decode: ");
+            io::stdout().flush().unwrap();
+            io::stdin().read_line(&mut code).unwrap();
+
+            // collect all bits at non-powers-of-2
+            let data = &code.trim().chars().enumerate()
+                .filter(|x| ((x.0 + 1) & x.0) != 0).map(|x| x.1)
+                .collect::<Vec<char>>()[..];
+            let chars = data.chunks(7)
+                .map(|x| u8::from_str_radix(&x.iter().cloned().collect::<String>()[..], 2).unwrap())
+                .collect::<Vec<u8>>();
+
+            String::from_utf8(chars).unwrap()
         }
     }
 }
