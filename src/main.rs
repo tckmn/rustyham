@@ -105,8 +105,8 @@ fn hamming(action: Hamming) -> String {
             let len = code_str.len() - 1;
             let lenpow = ((len + 1) as f32).sqrt().round() as u32;
             let chars = code_str.chars().map(|x| x == '1').collect::<Vec<bool>>();
-            for i in 0..lenpow {
-                println!("{:?}", calc_parity(chars, i));
+            if (0..lenpow).any(|i| calc_parity(&chars, i)) {
+                println!("There is an error!");
             }
 
             // collect all bits at non-powers-of-2
@@ -122,7 +122,7 @@ fn hamming(action: Hamming) -> String {
     }
 }
 
-fn calc_parity(code: Vec<bool>, i: u32) -> bool {
+fn calc_parity(code: &Vec<bool>, i: u32) -> bool {
     let bi = 2us.pow(i) - 1;
     let (mut parity, mut ignore, mut counter) = (false, false, 0);
     for j in bi..code.len() {
