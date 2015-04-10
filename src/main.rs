@@ -78,17 +78,7 @@ fn hamming(action: Hamming) -> String {
 
             // set parity bits
             for i in 0..lenpow {
-                let bi = 2us.pow(i) - 1;
-                let (mut parity, mut ignore, mut counter) = (false, false, 0);
-                for j in bi..len {
-                    if !ignore && code[j] { parity = !parity; }
-                    counter += 1;
-                    if counter >= 2u32.pow(i) {
-                        ignore = !ignore;
-                        counter = 0;
-                    }
-                }
-                code[bi] = parity;
+                code[2us.pow(i) - 1] = calc_parity(&code, i);
             }
 
             code.into_iter().map(|x| if x {"1"} else {"0"}).collect::<Vec<_>>().concat()
@@ -101,7 +91,6 @@ fn hamming(action: Hamming) -> String {
             io::stdin().read_line(&mut code_str).unwrap();
 
             // verify parity bits, fix 1-bit-flipped errors if any
-            // TODO avoid code repetition in Hamming::Encode =>
             let len = code_str.len() - 1;
             let lenpow = ((len + 1) as f32).sqrt().round() as u32;
             let chars = code_str.chars().map(|x| x == '1').collect::<Vec<bool>>();
