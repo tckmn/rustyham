@@ -46,13 +46,9 @@ fn hamming(action: Hamming) -> String {
     match action {
         Hamming::Encode => {
             // prompt for ASCII input
-            let mut message = String::new();
-            print!("Enter string to encode: ");
-            io::stdout().flush().unwrap();
-            io::stdin().read_line(&mut message).unwrap();
+            let message = prompt("Enter string to encode: ");
 
             // compute block and message length
-            message = message.trim().to_string();
             let mlen = message.len() as u32 * 7;
             let lenpow = (2..).find(|&r| 2u32.pow(r) - r - 1 >= mlen).unwrap();
             let len = 2us.pow(lenpow) - 1;
@@ -85,15 +81,12 @@ fn hamming(action: Hamming) -> String {
         },
         Hamming::Decode => {
             // prompt for binary input
-            let mut code_str = String::new();
-            print!("Enter Hamming code to decode: ");
-            io::stdout().flush().unwrap();
-            io::stdin().read_line(&mut code_str).unwrap();
+            let code_str = prompt("Enter Hamming code to decode: ");
 
             // verify parity bits, fix 1-bit-flipped errors if any
-            let len = code_str.len() - 1;  // -1 because newline at end
+            let len = code_str.len();
             let lenpow = ((len + 1) as f32).sqrt().round() as u32;
-            let mut chars = code_str.trim().chars().map(|x| x == '1').collect::<Vec<bool>>();
+            let mut chars = code_str.chars().map(|x| x == '1').collect::<Vec<bool>>();
             let mut flipped_bit = -1i32;
             while (0..lenpow).any(|i| calc_parity(&chars, i)) {
                 if flipped_bit != -1 {
@@ -128,4 +121,12 @@ fn calc_parity(code: &Vec<bool>, i: u32) -> bool {
         }
     }
     parity
+}
+
+fn prompt(s: &str) -> String {
+    let mut input = String::new();
+    print!("{}", s);
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut input).unwrap();
+    input.trim().to_string()
 }
