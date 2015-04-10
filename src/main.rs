@@ -6,6 +6,8 @@ use std::iter::repeat;
 use std::str::FromStr;
 use std::collections::BitVec;
 
+enum Hamming { Encode, Decode }
+
 fn main() {
     let title = "RUSTYHAM: A HAMMING CODE GENERATOR IN RUST";
     let border: String = repeat('=').take(title.len()).collect::<>();
@@ -28,8 +30,9 @@ fn main() {
             Some(n) => {
                 let mut good = true;
                 println!("{}", match n {
-                    1 => hamming(),
-                    2...4 => "Sorry, not implemented yet.".to_string(),
+                    1 => hamming(Hamming::Encode),
+                    3 => hamming(Hamming::Decode),
+                    2 | 4 => "Sorry, not implemented yet.".to_string(),
                     _ => { good = false; "Invalid input.".to_string() }
                 });
                 if good { break; }
@@ -41,60 +44,59 @@ fn main() {
     }
 }
 
-fn hamming() -> String {
-    // prompt for ASCII input
-    let mut message = String::new();
-    print!("Enter string to encode: ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut message).unwrap();
+fn hamming(action: Hamming) -> String {
+    match action {
+        Hamming::Encode => {
+            // prompt for ASCII input
+            let mut message = String::new();
+            print!("Enter string to encode: ");
+            io::stdout().flush().unwrap();
+            io::stdin().read_line(&mut message).unwrap();
 
-    // compute block and message length
-    message = message.trim().to_string();
-    let mlen = message.len() as u32 * 7;
-    let lenpow = (2..).find(|&r| 2u32.pow(r) - r - 1 >= mlen).unwrap();
-    let len = 2us.pow(lenpow) - 1;
+            // compute block and message length
+            message = message.trim().to_string();
+            let mlen = message.len() as u32 * 7;
+            let lenpow = (2..).find(|&r| 2u32.pow(r) - r - 1 >= mlen).unwrap();
+            let len = 2us.pow(lenpow) - 1;
 
-    // the thing we're storing the hamming code in
-    let mut bv = BitVec::from_elem(len, false);
+            // the thing we're storing the hamming code in
+            let mut bv = BitVec::from_elem(len, false);
 
-    // convert ASCII string to binary
-    // IMPORTANT NOTE: the following line takes ownership of the `message'
-    // variable. We no longer have access to the original string from this
-    // point onwards.
-    let bytes = message.into_bytes();
-    let bytes_str = bytes.iter()
-        .map(|&c| format!("{:0>1$b}", c, 7))
-        .collect::<Vec<String>>()
-        .concat();
-    let mut bytes_iter = bytes_str.chars();
+            // convert ASCII string to binary
+            // IMPORTANT NOTE: the following line takes ownership of the
+            // `message' variable. We no longer have access to the original
+            // string from this point onwards.
+            let bytes = message.into_bytes();
+            let bytes_str = bytes.iter().map(|&c| format!("{:0>1$b}", c, 7))
+                .collect::<Vec<String>>().concat();
 
-    // set data bits
-    for i in 1..len {
-        if (i & (i - 1)) != 0 {
-            bv.set(i-1, bytes_iter.next().unwrap_or('0') == '1');
-        }
-    }
-
-    // set parity bits
-    for i in 0..lenpow {
-        let bi = 2us.pow(i)-1;
-        let mut parity = false;
-        let mut ignore = false;
-        let mut counter = 0;
-        for j in bi..len {
-            if !ignore {
-                if bv.get(j).unwrap() {
-                    parity = !parity;
+            // set data bits
+            let mut bytes_iter = bytes_str.chars();
+            for i in 1..len {
+                if (i & (i - 1)) != 0 {  // if i is not a power of 2
+                    bv.set(i-1, bytes_iter.next().unwrap_or('0') == '1');
                 }
             }
-            counter += 1;
-            if counter >= 2u32.pow(i) {
-                ignore = !ignore;
-                counter = 0;
-            }
-        }
-        bv.set(bi, parity);
-    }
 
-    format!("{:?}", bv)
+            // set parity bits
+            for i in 0..lenpow {
+                let bi = 2us.pow(i) - 1;
+                let (mut parity, mut ignore, mut counter) = (false, false, 0);
+                for j in bi..len {
+                    if !ignore && bv.get(j).unwrap() { parity = !parity; }
+                    counter += 1;
+                    if counter >= 2u32.pow(i) {
+                        ignore = !ignore;
+                        counter = 0;
+                    }
+                }
+                bv.set(bi, parity);
+            }
+
+            format!("{:?}", bv)
+        },
+        Hamming::Decode => {
+            "foo".to_string()
+        }
+    }
 }
