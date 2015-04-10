@@ -19,8 +19,8 @@ fn main() {
         println!("(3) Decode to ASCII");
         println!("(4) Decode to binary");
         print!("Enter your choice: ");
-        io::stdout().flush();
-        io::stdin().read_line(&mut linebuf);
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut linebuf).unwrap();
 
         let num = i32::from_str(linebuf.trim());
         match num.ok() {
@@ -44,8 +44,8 @@ fn hamming() -> String {
     // prompt for ASCII input
     let mut message = String::new();
     print!("Enter string to encode: ");
-    io::stdout().flush();
-    io::stdin().read_line(&mut message);
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut message).unwrap();
 
     // compute block and message length
     message = message.trim().to_string();
