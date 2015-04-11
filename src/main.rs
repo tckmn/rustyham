@@ -97,14 +97,21 @@ fn hamming(action: Hamming, s: String) -> String {
             }
 
             // collect all bits at non-powers-of-2
-            let data = &chars.iter().enumerate()
-                .filter(|x| ((x.0 + 1) & x.0) != 0).map(|x| if *x.1 {'1'} else {'0'})
-                .collect::<Vec<char>>()[..];
-            let chars = data.chunks(7)
-                .map(|x| u8::from_str_radix(&x.iter().cloned().collect::<String>()[..], 2).unwrap())
-                .collect::<Vec<u8>>();
+            let data = chars.iter().enumerate()
+                .filter(|x| ((x.0 + 1) & x.0) != 0).map(|x| if *x.1 {'1'} else {'0'});
 
-            String::from_utf8(chars).unwrap()
+            // return
+            match action {
+                Hamming::DecodeBinary => {
+                    data.collect::<String>()
+                },
+                _ => {
+                    let chars = (&data.collect::<Vec<char>>()[..]).chunks(7)
+                        .map(|x| u8::from_str_radix(&x.iter().cloned().collect::<String>()[..], 2).unwrap())
+                        .collect::<Vec<u8>>();
+                    String::from_utf8(chars).unwrap()
+                }
+            }
         }
     }
 }
