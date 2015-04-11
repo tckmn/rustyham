@@ -104,15 +104,18 @@ fn hamming(action: Hamming, s: String) -> String {
 
             // return
             match action {
-                Hamming::DecodeBinary => {
-                    data.collect::<String>()
-                },
+                Hamming::DecodeBinary => { data.collect::<String>() },
                 _ => {
-                    let chars = (&data.collect::<Vec<char>>()[..]).chunks(7)
-                        .map(|x| {
-                            let ss = &x.iter().cloned().collect::<String>()[..];
-                            u8::from_str_radix(ss, 2).unwrap()
-                        })
+                    // we have to chop off the 0 padding if it exists
+                    let cslice = &data.collect::<Vec<char>>()[..];
+                    let mut chunks = cslice.chunks(7).map(|x| {
+                        x.iter().cloned().collect::<String>()
+                    }).collect::<Vec<String>>();
+                    if chunks[chunks.len()-1].len() < 7 { chunks.pop(); }
+                    else if chunks[chunks.len()-1] == "0000000" { chunks.pop(); }
+
+                    let chars = chunks.iter()
+                        .map(|x| u8::from_str_radix(&x[..], 2).unwrap())
                         .collect::<Vec<u8>>();
                     String::from_utf8(chars).unwrap()
                 }
