@@ -66,7 +66,7 @@ fn hamming(action: Hamming, s: String) -> String {
             let len = 2us.pow(lenpow) - 1;
 
             // the thing we're storing the hamming code in
-            let mut code: Vec<bool> = repeat(false).take(len).collect::<>();
+            let mut code: Vec<bool> = repeat(false).take(len).collect();
 
             // set data bits
             for i in 1..len {
@@ -80,7 +80,8 @@ fn hamming(action: Hamming, s: String) -> String {
                 code[2us.pow(i) - 1] = calc_parity(&code, i);
             }
 
-            code.into_iter().map(|x| if x {"1"} else {"0"}).collect::<Vec<_>>().concat()
+            code.into_iter().map(|x| if x {"1"} else {"0"})
+                .collect::<Vec<_>>().concat()
         },
         Hamming::Decode | Hamming::DecodeBinary => {
             // verify parity bits, fix 1-bit-flipped errors if any
@@ -98,7 +99,8 @@ fn hamming(action: Hamming, s: String) -> String {
 
             // collect all bits at non-powers-of-2
             let data = chars.iter().enumerate()
-                .filter(|x| ((x.0 + 1) & x.0) != 0).map(|x| if *x.1 {'1'} else {'0'});
+                .filter(|x| ((x.0 + 1) & x.0) != 0)
+                .map(|x| if *x.1 {'1'} else {'0'});
 
             // return
             match action {
@@ -107,7 +109,10 @@ fn hamming(action: Hamming, s: String) -> String {
                 },
                 _ => {
                     let chars = (&data.collect::<Vec<char>>()[..]).chunks(7)
-                        .map(|x| u8::from_str_radix(&x.iter().cloned().collect::<String>()[..], 2).unwrap())
+                        .map(|x| {
+                            let ss = &x.iter().cloned().collect::<String>()[..];
+                            u8::from_str_radix(ss, 2).unwrap()
+                        })
                         .collect::<Vec<u8>>();
                     String::from_utf8(chars).unwrap()
                 }
