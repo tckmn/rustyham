@@ -3,7 +3,7 @@ use std::io::prelude::*;
 use std::iter::repeat;
 use std::str::FromStr;
 
-enum Hamming { Encode, Decode }
+enum Hamming { Encode, Decode, EncodeBinary, DecodeBinary }
 
 fn main() {
     let title = "RUSTYHAM: A HAMMING CODE GENERATOR IN RUST";
@@ -15,10 +15,9 @@ fn main() {
     loop {
         let mut linebuf = String::new();
         println!("(1) Encode ASCII");
-        println!("*(2) Encode binary");
+        println!("(2) Encode binary");
         println!("(3) Decode to ASCII");
-        println!("*(4) Decode to binary");
-        println!("Note: options marked as * are not supported yet.");
+        println!("(4) Decode to binary");
         print!("Enter your choice: ");
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut linebuf).unwrap();
@@ -29,8 +28,9 @@ fn main() {
                 let mut good = true;
                 println!("{}", match n {
                     1 => hamming(Hamming::Encode, prompt("Enter string to encode: ")),
+                    2 => hamming(Hamming::EncodeBinary, prompt("Enter binary string to encode: ")),
                     3 => hamming(Hamming::Decode, prompt("Enter Hamming code to decode: ")),
-                    2 | 4 => "Sorry, not implemented yet.".to_string(),
+                    4 => hamming(Hamming::DecodeBinary, prompt("Enter Hamming code to decode to binary: ")),
                     _ => { good = false; "Invalid input.".to_string() }
                 });
                 if good { break; }
@@ -44,25 +44,31 @@ fn main() {
 
 fn hamming(action: Hamming, s: String) -> String {
     match action {
-        Hamming::Encode => {
+        Hamming::Encode | Hamming::EncodeBinary => {
+            // get an iterator over the individual bits
+            let mut bytes;
+            let bytes_str = match action {
+                Hamming::EncodeBinary => s,
+                _ => {
+                    // convert ASCII string to binary
+                    bytes = s.into_bytes();  // takes ownership of s
+                    bytes.iter().map(|&c| format!("{:0>1$b}", c, 7))
+                        .collect::<Vec<String>>().concat()
+                }
+            };
+            let mut bytes_iter = bytes_str.chars();
+            // we should assume that ownership of s has already been
+            // transferred away by this point
+
             // compute block and message length
-            let mlen = s.len() as u32 * 7;
+            let mlen = bytes_str.len() as u32;
             let lenpow = (2..).find(|&r| 2u32.pow(r) - r - 1 >= mlen).unwrap();
             let len = 2us.pow(lenpow) - 1;
 
             // the thing we're storing the hamming code in
             let mut code: Vec<bool> = repeat(false).take(len).collect::<>();
 
-            // convert ASCII string to binary
-            // IMPORTANT NOTE: the following line takes ownership of the
-            // `s' variable. We no longer have access to the original
-            // string from this point onwards.
-            let bytes = s.into_bytes();
-            let bytes_str = bytes.iter().map(|&c| format!("{:0>1$b}", c, 7))
-                .collect::<Vec<String>>().concat();
-
             // set data bits
-            let mut bytes_iter = bytes_str.chars();
             for i in 1..len {
                 if (i & (i - 1)) != 0 {  // if i is not a power of 2
                     code[i-1] = bytes_iter.next().unwrap_or('0') == '1';
@@ -76,7 +82,7 @@ fn hamming(action: Hamming, s: String) -> String {
 
             code.into_iter().map(|x| if x {"1"} else {"0"}).collect::<Vec<_>>().concat()
         },
-        Hamming::Decode => {
+        Hamming::Decode | Hamming::DecodeBinary => {
             // verify parity bits, fix 1-bit-flipped errors if any
             let len = s.len();
             let lenpow = ((len + 1) as f32).sqrt().round() as u32;
