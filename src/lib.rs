@@ -9,7 +9,7 @@ pub mod rustyham {
                 // get an iterator over the individual bits
                 let mut bytes;
                 let bytes_str = match action {
-                    Hamming::EncodeBinary => s,
+                    Hamming::EncodeBinary => s + "1",  // the final 1 signifies EOS
                     _ => {
                         // convert ASCII string to binary
                         bytes = s.into_bytes();  // takes ownership of s
@@ -65,7 +65,12 @@ pub mod rustyham {
 
                 // return
                 match action {
-                    Hamming::DecodeBinary => { data.collect::<String>() },
+                    Hamming::DecodeBinary => {
+                        // have to chop off everything from the final 1
+                        let data_str = data.collect::<String>();
+                        let idx = (&data_str[..]).rfind('1').unwrap();
+                        (&data_str[..idx]).to_string()
+                    },
                     _ => {
                         // we have to chop off the 0 padding if it exists
                         let cslice = &data.collect::<Vec<char>>()[..];
