@@ -3,3 +3,8 @@
 name = "rustyham"
 version = "0.0.1"
 authors = ["KeyboardFire <andy@keyboardfire.com>"]
+description = "A Hamming code generator in Rust."
+repository = "https://github.com/KeyboardFire/rustyham"
+readme = "README.md"
+keywords = ["hamming", "hammingcode"]
+license = "MIT"
