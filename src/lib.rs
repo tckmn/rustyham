@@ -73,7 +73,7 @@ pub mod rustyham {
                             x.iter().cloned().collect::<String>()
                         }).collect::<Vec<String>>();
                         if chunks[chunks.len()-1].len() < 7 { chunks.pop(); }
-                        else if chunks[chunks.len()-1] == "0000000" { chunks.pop(); }
+                        while chunks[chunks.len()-1] == "0000000" { chunks.pop(); }
 
                         let chars = chunks.iter()
                             .map(|x| u8::from_str_radix(&x[..], 2).unwrap())

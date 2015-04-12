@@ -2,6 +2,11 @@ extern crate rustyham;
 use rustyham::rustyham::*;
 
 #[test]
-fn testfoobar() {
-    assert!(hamming(Hamming::Encode, "a".to_string()) == "101110010010000".to_string());
+fn test_encode() {
+    assert_eq!(hamming(Hamming::Encode, "test".to_string()), "111011011001100110111100111110100000000000000000000000000000000".to_string());
+}
+
+#[test]
+fn test_decode() {
+    assert_eq!(hamming(Hamming::Decode, "111011011001100110111100111110100000000000000000000000000000000".to_string()), "test".to_string());
 }
