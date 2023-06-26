@@ -24,7 +24,7 @@ pub mod rustyham {
                 // compute block and message length
                 let mlen = bytes_str.len() as u32;
                 let lenpow = (2..).find(|&r| 2u32.pow(r) - r - 1 >= mlen).unwrap();
-                let len = 2us.pow(lenpow) - 1;
+                let len = 2usize.pow(lenpow) - 1;
 
                 // the thing we're storing the hamming code in
                 let mut code: Vec<bool> = repeat(false).take(len).collect();
@@ -38,7 +38,7 @@ pub mod rustyham {
 
                 // set parity bits
                 for i in 0..lenpow {
-                    code[2us.pow(i) - 1] = calc_parity(&code, i);
+                    code[2usize.pow(i) - 1] = calc_parity(&code, i);
                 }
 
                 code.into_iter().map(|x| if x {"1"} else {"0"})
@@ -91,7 +91,7 @@ pub mod rustyham {
     }
 
     fn calc_parity(code: &Vec<bool>, i: u32) -> bool {
-        let bi = 2us.pow(i) - 1;
+        let bi = 2usize.pow(i) - 1;
         let (mut parity, mut ignore, mut counter) = (false, false, 0);
         for j in bi..code.len() {
             if !ignore && code[j] { parity = !parity }
